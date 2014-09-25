@@ -1,0 +1,16 @@
+/* Empty. Add your own CSS if you like */
+
+ion-nav-view {
+  background-color: transparent;
+}
+
+.x-chatHistory, .x-userList {
+  height: 500px;
+  border: 1px solid black;
+}
+
+.x-textArea, .x-sendButton {
+  height: 70px;
+  border: 1px solid black;
+}
+
