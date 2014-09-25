@@ -1,16 +1,17 @@
 /* Empty. Add your own CSS if you like */
 
-ion-nav-view {
+ion-content {
   background-color: transparent;
 }
 
-.x-chatHistory, .x-userList {
-  height: 500px;
-  border: 1px solid black;
+.x-Message {
+  vertical-align: middle;
+  font-size: 12px;
+  padding: 10px;
 }
 
-.x-textArea, .x-sendButton {
-  height: 70px;
-  border: 1px solid black;
+.bar-footer {
+  min-height: 20px !important;
 }
+
 

@@ -1,26 +1,12 @@
+<ion-view>
 <ion-content>
-  <div class="row padding">
-    <div class="col-80">
-      user 1
-    </div>
-    <div class="col-20">
-      <button class="border-radius">chat</button>
-    </div>
-  </div>
-  <div class="row padding">
-    <div class="col-80">
-      user 1
-    </div>
-    <div class="col-20">
-      <button>chat</button>
-    </div>
-  </div>
-  <div class="row padding">
-    <div class="col-80">
-      user 1
-    </div>
-    <div class="col-20">
-      <button>chat</button>
-    </div>
+  <h4 class="text-center energized">Online users</h4>
+  <div class="list">
+    <a class="item item-avatar" href="" ng-click = "chatWithUser(user)" ng-repeat="user in users">
+      <img src="img/ionic.png">
+      <h2>{{ user.firstname }} {{ user.lastname }}</h2>
+      <p>Typical Status Message</p>
+    </a>
   </div>
 </ion-content>
+</ion-view>

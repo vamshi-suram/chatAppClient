@@ -1,18 +1,23 @@
-<ion-content>
-  <div class="row padding">
-    <div class="col-80 x-chatHistory">
-      Chat history
-    </div>
-    <div class="col-20 x-userList">
-      Users list
-    </div>
+<ion-view>
+<ion-content class="stable-bg">
+  <h4 class="title text-center positive">{{ chatWith.firstname || "Test User" }}</h4>
+  <div class="x-chatHistory">
+
   </div>
-  <div class="row padding">
-    <div class="col-80 x-textArea">
-      <textarea>text area</textarea>
-    </div>
-    <div class="col-20 x-sendButton">
-      <button class="button button-positive">Send</button>
-    </div>
-  </div>
+
 </ion-content>
+<ion-footer-bar align-title="left" class="bar bar-stable">
+  <div class="buttons">
+    
+  </div>
+      <textarea class="x-Message col-80 padding" placeholder="Enter message"></textarea>
+      <button class="button button-small button-positive col-20 padding">
+      Send
+    </button>
+  <div class="buttons">
+    
+  </div>
+</ion-footer-bar>
+
+
+</ion-view>

@@ -1,18 +1,16 @@
 <ion-view>
-  <ion-content>
-    <div class="list">
-      <form name="testForm" novalidate>
-      <label class="item item-input">
-        <input type="text" ng-model = "firstname" placeholder="First Name" required>
-      </label>
-      <label class="item item-input">
-        <input type="text" ng-model = "lastname" placeholder="Last Name" required>
-      </label>
-    </div>
-      <div class="padding">
-        <button type="submit" class="button button-block button-dark" ng-click="registerUser()">Submit</button>
-      </div>
-    <form>
-  </ion-content>
+    <ion-content>
+    <h4 class="title text-center energized">Register</h4>
+        <div class="list">
+            <form name="testForm" ng-submit="registerUser()" novalidate>
+                <label class="item item-input">
+                    <input type="text" ng-model="user.firstname" placeholder="First Name (2 - 20 chars)" required ng-minlength="2" ng-maxlength="20">
+                </label> 
+                <label class="item item-input">
+                    <input type="text" ng-model="user.lastname" placeholder="Last Name (2 - 20 chars)" required ng-minlength="2" ng-maxlength="10">
+                </label>
+                <button class="button button-block button-dark" ng-disabled="testForm.$invalid">Submit</button>
+            </form>
+        </div>
+    </ion-content>
 </ion-view>
-
