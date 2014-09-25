@@ -5,8 +5,17 @@
 // the 2nd parameter is an array of 'requires'
 angular.module('chatApp', ['ionic', 'chatApp.router'])
 
-.controller('mainController', ['$scope', function($scope) {
-  // TODO..
+.service("USER", function () {
+  return {
+    name: ""
+  }
+})
+
+.controller('mainController', ['$scope', 'USER', '$state',  function($scope, USER, $state) {
+  $scope.registerUser = function () {
+    USER.name = $scope.lastname + ", " + $scope.firstname;
+    $state.go("chat");
+  }
 }])
 
 .run(function($ionicPlatform) {

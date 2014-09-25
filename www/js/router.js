@@ -2,7 +2,7 @@ var router = angular.module('chatApp.router', ['ui.router']);
 
 router.config(function($stateProvider, $urlRouterProvider) {
 
-  $urlRouterProvider.otherwise('/users');
+  $urlRouterProvider.otherwise('/register');
 
   $stateProvider
     .state('register', {
