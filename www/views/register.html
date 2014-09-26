@@ -4,10 +4,10 @@
         <div class="list">
             <form name="testForm" ng-submit="registerUser()" novalidate>
                 <label class="item item-input">
-                    <input type="text" ng-model="user.firstname" placeholder="First Name (2 - 20 chars)" required ng-minlength="2" ng-maxlength="20">
+                    <input type="text" ng-model="user.firstName" placeholder="First Name (2 - 20 chars)" required ng-minlength="2" ng-maxlength="20">
                 </label> 
                 <label class="item item-input">
-                    <input type="text" ng-model="user.lastname" placeholder="Last Name (2 - 20 chars)" required ng-minlength="2" ng-maxlength="10">
+                    <input type="text" ng-model="user.lastName" placeholder="Last Name (2 - 20 chars)" required ng-minlength="2" ng-maxlength="20">
                 </label>
                 <button class="button button-block button-dark" ng-disabled="testForm.$invalid">Submit</button>
             </form>

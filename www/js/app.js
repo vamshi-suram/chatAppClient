@@ -6,41 +6,63 @@
 angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatApp.networking'])
 
 
-.controller('mainController', ['$rootScope', '$scope', '$state', 'userService', 'WebSocketService', function($rootScope, $scope, $state, userService, ws) {
+.controller('mainController', ['$rootScope', '$scope', '$state', 'userService', 'WebSocketService', function($rootScope, $scope, $state, userService, websocketService) {
 
   if ($state.current.name === "users") {
     userService.onlineUsers().then(
       function (data) {
-        $rootScope.users = data.users;
+        (data.users).forEach(function (user) {
+          if (user.userId !== $rootScope.currentUser.userId) {
+            $rootScope.messageList[user.userId] = [];
+            $rootScope.users.push(user);
+          }
+        });
       },
       function (error) {
         console.log(error);
       });
   }
+
   
-  ws.on("login-broadcast", function (data) {
+  websocketService.on("login-broadcast", function (data) {
     var user = {};
-    user.userid = data.userid;
-    user.firstname = data.firstname;
-    user.lastname = data.lastname;
+    user.userId = data.userId;
+    user.firstName = data.firstName;
+    user.lastName = data.lastName;
     $rootScope.$apply(function () {
-      if (user.userid !== $rootScope.currentUser.userid) {
+      if (user.userId !== $rootScope.currentUser.userId) {
+        $rootScope.messageList[user.userId] = []; // Initialize message list.
         $rootScope.users.push(user);
       }
     });
   });
 
+  if ($scope.user === undefined) {
+    $scope.user = {
+      "userId" : "",
+      "firstName" : "",
+      "lastName" : ""
+    };
+  }
 
-  ws.on("logout-broadcast", function (data) {
+  if ($scope.message === undefined) {
+    $scope.message = "";
+  }
+
+  if ($rootScope.messageList === undefined) {
+    $rootScope.messageList = {};
+  }
+
+  websocketService.on("logout-broadcast", function (data) {
     var user = {};
-    user.id = data.userid;
-    user.firstname = data.firstname;
-    user.lastname = data.lastname;
+    user.id = data.userId;
+    user.firstName = data.firstName;
+    user.lastName = data.lastName;
     $rootScope.$apply(function () {
-      if (user.id !== $rootScope.currentUser.userid) {
+      if (user.id !== $rootScope.currentUser.userId) {
         var newArr = [];
         ($rootScope.users).forEach(function (rootScopeUser, i) {
-          if (user.id === rootScopeUser.userid) {
+          if (user.id === rootScopeUser.userId) {
           
           } else {
             newArr.push(rootScopeUser);
@@ -51,15 +73,36 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
     });
   });
 
-  $scope.user = $rootScope.currentUser || { firstname : "", lastname: ""};
+  websocketService.on("private-message", function (data) {
+    // Find the user who sent the message.
+    var fromId = data.from;
+    ($rootScope.users).forEach(function (rootScopeUser, i) {
+      if (data.from === rootScopeUser.userId) {
+        $rootScope.chatWith = rootScopeUser;
+        $rootScope.messageList[data.from].push(data.message); // Add message.
+        $state.go("chat");
+      }
+    });
+  });
+
   $scope.chatWith = $rootScope.chatWith;
+  $scope.currentUser = $rootScope.currentUser;
+
+  if ($scope.chatWith !== undefined) {
+    $scope.currentMessageList = $rootScope.messageList[$scope.chatWith["userId"]];
+  }
 
   $scope.isHome = function () {
-    if (($state.current.name === "register") || ($state.current.name === "users")) {
+    if ($state.current.name === "register") {
       return true;
     } else {
       return false;
     }
+  };
+
+  $scope.sendMessage = function (message) {
+    $rootScope.messageList[$scope.chatWith.userId].push(message);
+    userService.sendMessage($scope.currentUser, $scope.chatWith, message);
   };
 
   $scope.goBack = function () {
@@ -68,9 +111,9 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
 
   $scope.registerUser = function () {
     $rootScope.users = [];
-    userService.loginUser($scope.user.firstname, $scope.user.lastname).then(
+    userService.loginUser($scope.user.firstName, $scope.user.lastName).then(
       function (data) {
-        console.log("Logged in", data);
+        console.log("Logged in");
       },
       function (error) {
         console.log(error);
@@ -83,11 +126,16 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
     $state.go("chat");
   };
 
-$rootScope.$on('$stateChangeSuccess', function(ev, to, toParams, from, fromParams) {
+
+  $scope.logout = function () {
+    userService.logout();
+    $state.go("register");
+  }
+
+  $rootScope.$on('$stateChangeSuccess', function(ev, to, toParams, from, fromParams) {
     $rootScope.previousState = from.name;
     $rootScope.currentState = to.name;
-});
-
+  });
 
 
 }])

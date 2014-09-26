@@ -1,8 +1,10 @@
 <ion-view>
 <ion-content class="stable-bg">
-  <h4 class="title text-center positive">{{ chatWith.firstname || "Test User" }}</h4>
-  <div class="x-chatHistory">
-
+  <h4 class="title text-center positive">{{ chatWith.firstName || "Test User" }}</h4>
+  <div class="x-chatHistory" ng-repeat="message in currentMessageList">
+    <div class="x-chatMessage">
+      <p>{{ message }}<p>
+    </div>
   </div>
 
 </ion-content>
@@ -10,8 +12,8 @@
   <div class="buttons">
     
   </div>
-      <textarea class="x-Message col-80 padding" placeholder="Enter message"></textarea>
-      <button class="button button-small button-positive col-20 padding">
+      <textarea class="x-Message col-80 padding" placeholder="Enter message" ng-model="message"></textarea>
+      <button class="button button-small button-positive col-20 padding" ng-click="sendMessage(message)">
       Send
     </button>
   <div class="buttons">

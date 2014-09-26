@@ -14,4 +14,8 @@ ion-content {
   min-height: 20px !important;
 }
 
-
+.x-chatMessage {
+  background: #fff;
+  padding: 10px;
+  color: #132462;
+}
