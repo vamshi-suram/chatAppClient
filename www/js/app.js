@@ -3,17 +3,55 @@
 // angular.module is a global place for creating, registering and retrieving Angular modules
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
-angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services'])
+angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatApp.networking'])
 
 
-.controller('mainController', ['$rootScope', '$scope', '$state', 'userService',  function($rootScope, $scope, $state, userService) {
+.controller('mainController', ['$rootScope', '$scope', '$state', 'userService', 'WebSocketService', function($rootScope, $scope, $state, userService, ws) {
 
-  if ($rootScope.users === undefined) {
-    $rootScope.users = userService.onlineUsers();
+  if ($state.current.name === "users") {
+    userService.onlineUsers().then(
+      function (data) {
+        $rootScope.users = data.users;
+      },
+      function (error) {
+        console.log(error);
+      });
   }
+  
+  ws.on("login-broadcast", function (data) {
+    var user = {};
+    user.userid = data.userid;
+    user.firstname = data.firstname;
+    user.lastname = data.lastname;
+    $rootScope.$apply(function () {
+      if (user.userid !== $rootScope.currentUser.userid) {
+        $rootScope.users.push(user);
+      }
+    });
+  });
+
+
+  ws.on("logout-broadcast", function (data) {
+    var user = {};
+    user.id = data.userid;
+    user.firstname = data.firstname;
+    user.lastname = data.lastname;
+    $rootScope.$apply(function () {
+      if (user.id !== $rootScope.currentUser.userid) {
+        var newArr = [];
+        ($rootScope.users).forEach(function (rootScopeUser, i) {
+          if (user.id === rootScopeUser.userid) {
+          
+          } else {
+            newArr.push(rootScopeUser);
+          }
+        });
+        $rootScope.users = newArr;
+      }
+    });
+  });
 
   $scope.user = $rootScope.currentUser || { firstname : "", lastname: ""};
-  $scope.users = $rootScope.users;
   $scope.chatWith = $rootScope.chatWith;
 
   $scope.isHome = function () {
@@ -29,8 +67,14 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services'])
   };
 
   $scope.registerUser = function () {
-    $rootScope.currentUser = $scope.user;
-    $rootScope.users.push({firstname: $scope.user.firstname, lastname: $scope.user.lastname});
+    $rootScope.users = [];
+    userService.loginUser($scope.user.firstname, $scope.user.lastname).then(
+      function (data) {
+        console.log("Logged in", data);
+      },
+      function (error) {
+        console.log(error);
+      });
     $state.go("users");
   };
 
