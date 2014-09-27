@@ -3,25 +3,10 @@
 // angular.module is a global place for creating, registering and retrieving Angular modules
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
-angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatApp.networking'])
+angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatApp.networking', 'ngCordova'])
 
-
-.controller('mainController', ['$rootScope', '$scope', '$state', 'userService', 'WebSocketService', function($rootScope, $scope, $state, userService, websocketService) {
-
-  if ($state.current.name === "users") {
-    userService.onlineUsers().then(
-      function (data) {
-        (data.users).forEach(function (user) {
-          if (user.userId !== $rootScope.currentUser.userId) {
-            $rootScope.messageList[user.userId] = [];
-            $rootScope.users.push(user);
-          }
-        });
-      },
-      function (error) {
-        console.log(error);
-      });
-  }
+.value('colors', ['#9E0707' , '#A33A07', '#967302', '#779602', '#0D885D', '#2827AA', '#BA134E'])
+.controller('mainController', ['$rootScope', '$scope', '$state', 'userService', 'WebSocketService', 'colors', '$cordovaToast', function($rootScope, $scope, $state, userService, websocketService, colors, cordovaToast) {
 
   
   websocketService.on("login-broadcast", function (data) {
@@ -29,11 +14,17 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
     user.userId = data.userId;
     user.firstName = data.firstName;
     user.lastName = data.lastName;
+    var messageString = "User: " + user.firstName + " " + user.lastName + " has logged in";
     $rootScope.$apply(function () {
       if (user.userId !== $rootScope.currentUser.userId) {
         $rootScope.messageList[user.userId] = []; // Initialize message list.
         $rootScope.users.push(user);
       }
+    });
+    cordovaToast.show(messageString, 'long', 'center').then(function (success) {
+      console.log("The toast was shown");
+    }, function (error) {
+      console.log("The toast was not shown due to " + error);
     });
   });
 
@@ -58,6 +49,7 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
     user.id = data.userId;
     user.firstName = data.firstName;
     user.lastName = data.lastName;
+
     $rootScope.$apply(function () {
       if (user.id !== $rootScope.currentUser.userId) {
         var newArr = [];
@@ -70,6 +62,18 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
         });
         $rootScope.users = newArr;
       }
+    // If current user is in state `chat` and chatWith points to logged out user,
+    // then redirect the user to `users` state.
+    if (($state.current.name === "chat") && ($rootScope.chatWith.userId === user.id)) {
+
+      window.setTimeout(function () { $rootScope.chatWith = undefined; $state.go("users"); }, 1000);
+      var messageString = "User: " + user.firstName + " " + user.lastName + " has logged out";
+      cordovaToast.show(messageString, 'long', 'center').then(function (success) {
+        console.log("The toast was shown");
+      }, function (error) {
+        console.log("The toast was not shown due to " + error);
+      });
+    } 
     });
   });
 
@@ -79,14 +83,54 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
     ($rootScope.users).forEach(function (rootScopeUser, i) {
       if (data.from === rootScopeUser.userId) {
         $rootScope.chatWith = rootScopeUser;
-        $rootScope.messageList[data.from].push(data.message); // Add message.
-        $state.go("chat");
+        $scope.chatWith = $rootScope.chatWith;
+        if ($scope.chatWith !== undefined) {
+          if ($rootScope.colorList[$scope.chatWith.userId] === undefined) {
+            var randomIndex = Math.floor((Math.random() * colors.length));
+            $rootScope.colorList[$scope.chatWith.userId] = colors[randomIndex];
+          }
+          $scope.otherColor = $rootScope.colorList[$scope.chatWith.userId];
+        }
+
+        var mList = $rootScope.messageList[data.from];
+        if (mList.length > 0) {
+          // Check if the last message is from  same user. If that is the case, instead of adding
+          // a new message object, add the message to previous message with a \n.
+          var len = mList.length - 1;
+          var lastMessage = mList[len];
+
+          if (lastMessage.class === "other") {
+            mList[len].msg = mList[len].msg + " " + data.message;
+            mList[len].time = new Date();
+            $rootScope.messageList[data.from] = mList;
+          } else {
+            var messageObject = { "time" : new Date(), "class" : "other", "msg" : data.message , "firstLetter" : (rootScopeUser.firstName).slice(0,2), "color": $scope.otherColor || '#9A9EA2'};
+            $rootScope.messageList[data.from].push(messageObject); // Add message.           
+          }
+        } else {
+            var messageObject = { "time" : new Date(), "class" : "other", "msg" : data.message, "firstLetter" : (rootScopeUser.firstName).slice(0,2), "color": $scope.otherColor || '#9A9EA2' };
+            $rootScope.messageList[data.from].push(messageObject); // Add message.          
+        }
+        $state.go("chat", {}, {reload : true});
       }
     });
   });
 
+  if ($rootScope.colorList === undefined) {
+    $rootScope.colorList = {};
+  }
   $scope.chatWith = $rootScope.chatWith;
+
   $scope.currentUser = $rootScope.currentUser;
+
+  if ($scope.currentUser !== undefined) {
+    if ($rootScope.colorList[$scope.currentUser.userId] === undefined) {
+      var randomIndex = Math.floor((Math.random() * colors.length));
+      $rootScope.colorList[$scope.currentUser.userId] = colors[randomIndex];
+    }
+    $scope.selfColor = $rootScope.colorList[$scope.currentUser.userId];
+  }
+
 
   if ($scope.chatWith !== undefined) {
     $scope.currentMessageList = $rootScope.messageList[$scope.chatWith["userId"]];
@@ -101,12 +145,21 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
   };
 
   $scope.sendMessage = function (message) {
-    $rootScope.messageList[$scope.chatWith.userId].push(message);
+    var messageObject = { "time" : new Date(), "class" : "self", "msg" : message, "firstLetter" : ($rootScope.currentUser.firstName).slice(0,2), "color": $scope.selfColor || '#9A9EA2'};
+    $rootScope.messageList[$scope.chatWith.userId].push(messageObject);
+    $scope.message = "";
     userService.sendMessage($scope.currentUser, $scope.chatWith, message);
   };
 
+
+  $scope.createRoom = function () {
+    roomService.createRoom();
+    $state.go("rooms");
+  }
   $scope.goBack = function () {
-    $state.go($rootScope.previousState);
+    if ($state.current.name !== "choose") {
+      $state.go($rootScope.previousState);
+    }
   };
 
   $scope.registerUser = function () {
@@ -118,7 +171,7 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
       function (error) {
         console.log(error);
       });
-    $state.go("users");
+    $state.go("choose");
   };
 
   $scope.chatWithUser = function (user) {

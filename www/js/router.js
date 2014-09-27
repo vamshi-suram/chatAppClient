@@ -2,7 +2,7 @@ var router = angular.module('chatApp.router', ['ui.router']);
 
 router.config(function($stateProvider, $urlRouterProvider) {
 
-  $urlRouterProvider.otherwise('/register');
+  $urlRouterProvider.otherwise('register');
 
   $stateProvider
     .state('register', {
@@ -20,6 +20,24 @@ router.config(function($stateProvider, $urlRouterProvider) {
     .state('chat', {
             url: '/chat',
             templateUrl: 'views/chat.html',
+            controller: 'mainController'
+    })
+
+    .state('rooms', {
+            url: '/rooms',
+            templateUrl: 'views/rooms.html',
+            controller: 'mainController'
+    })
+
+    .state('room', {
+            url: '/room',
+            templateUrl: 'views/room.html',
+            controller: 'mainController'
+    })
+
+    .state('choose', {
+            url: '/choose',
+            templateUrl: 'views/choose.html',
             controller: 'mainController'
     })
 
