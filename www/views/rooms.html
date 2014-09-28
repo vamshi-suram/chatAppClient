@@ -1,11 +1,8 @@
 <ion-view>
 <ion-content>
   <ul class="list">
-    <li class="item">
-      Room1
-    </li>
-    <li class="item">
-      Room2
+    <li class="item" ng-repeat="room in rooms" ng-click="goToRoom(room)">
+      {{ room.name }}
     </li>
 </ul>
 </ion-content>

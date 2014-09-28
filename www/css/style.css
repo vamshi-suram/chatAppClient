@@ -105,6 +105,15 @@ ion-content {
     width: 100%;
 }
 
+.alphabet-circle-extended {
+    background: #9A9EA2;
+    color: #fff;
+    padding: 5px;
+    text-align: center;
+    font: 12px Arial, sans-serif;
+    display: block;
+    width: 100%;
+}
 
 
 .register form {
