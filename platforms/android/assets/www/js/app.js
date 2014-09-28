@@ -6,7 +6,7 @@
 angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatApp.networking', 'ngCordova'])
 
 .value('colors', ['#9E0707' , '#A33A07', '#967302', '#779602', '#0D885D', '#2827AA', '#BA134E'])
-.controller('mainController', ['$rootScope', '$scope', '$state', 'userService', 'WebSocketService', 'colors', '$cordovaToast', function($rootScope, $scope, $state, userService, websocketService, colors, cordovaToast) {
+.controller('mainController', ['$rootScope', '$scope', '$state', 'userService', 'WebSocketService', 'colors', '$cordovaToast', 'roomService', function($rootScope, $scope, $state, userService, websocketService, colors, cordovaToast, roomService) {
 
   
   websocketService.on("login-broadcast", function (data) {
@@ -36,12 +36,20 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
     };
   }
 
+  if ($rootScope.stateArray === undefined) {
+    $rootScope.stateArray = [];
+  }
+
   if ($scope.message === undefined) {
     $scope.message = "";
   }
 
   if ($rootScope.messageList === undefined) {
     $rootScope.messageList = {};
+  }
+
+  if ($rootScope.roomMessageList === undefined) {
+    $rootScope.roomMessageList = {};
   }
 
   websocketService.on("logout-broadcast", function (data) {
@@ -116,12 +124,63 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
     });
   });
 
+  if ($rootScope.rooms === undefined) {
+    $rootScope.rooms = [];
+  }
+
+  websocketService.on("room-created", function (data) {
+    var roomId = data.roomId;
+    $rootScope.roomMessageList[roomId] = [];
+    $rootScope.$apply(function () {
+      $rootScope.rooms.push({"roomId": roomId, "name" : "Room#" + roomId});
+    });
+    var tempStr = "New room Room#" + roomId + " created"; 
+    cordovaToast.show(tempStr, "long", "bottom");
+  });
+  
+  websocketService.on("room-message", function (data) {
+  // Add the message to rootScope.
+    ($rootScope.rooms).forEach(function (room) {
+      if (room.roomId === data.roomId) {
+        $rootScope.$apply(function () {
+          $rootScope.currentRoom = room;
+          if ($rootScope.colorList[data.senderId] === undefined) {
+            var randomIndex = Math.floor((Math.random() * colors.length));
+            $rootScope.colorList[data.senderId] = colors[randomIndex];
+          }
+          var messageObject = { "time" : new Date(), "class" : "other", "msg" : data.message, "firstLetter" : (data.from), "color": $rootScope.colorList[data.senderId] || '#9A9EA2' };
+          if ($rootScope.roomMessageList[room.roomId] === undefined) {
+            $rootScope.roomMessageList[room.roomId] = [];
+          }
+          $rootScope.roomMessageList[room.roomId].push(messageObject);
+          $scope.currentRoom = room;
+          $scope.currentRoomMessageList = $rootScope.roomMessageList[room.roomId];
+        });
+      }
+    });
+  });
+
+  websocketService.on("online-rooms", function (data) {
+    $rootScope.$apply(function () {
+      $rootScope.rooms = [];
+      (data.rooms).forEach(function (room) {
+        $rootScope.rooms.push({"roomId": room.roomId, "name": "Room#" + room.roomId });
+      });
+    });
+    $state.go("rooms");
+  });
+
+  $scope.rooms = $rootScope.rooms;
+  $scope.currentRoom = $rootScope.currentRoom;
+
   if ($rootScope.colorList === undefined) {
     $rootScope.colorList = {};
   }
   $scope.chatWith = $rootScope.chatWith;
 
   $scope.currentUser = $rootScope.currentUser;
+
+  $scope.currentRoom = $rootScope.currentRoom;
 
   if ($scope.currentUser !== undefined) {
     if ($rootScope.colorList[$scope.currentUser.userId] === undefined) {
@@ -136,12 +195,33 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
     $scope.currentMessageList = $rootScope.messageList[$scope.chatWith["userId"]];
   }
 
+  if ($scope.currentRoom !== undefined) {
+    $scope.currentRoomMessageList = $rootScope.roomMessageList[$scope.currentRoom["roomId"]];
+  }
+
+  if ($scope.roomMessage === undefined) {
+    $scope.roomMessage = "";
+  }
+
   $scope.isHome = function () {
     if ($state.current.name === "register") {
       return true;
     } else {
       return false;
     }
+  };
+
+  $scope.joinExisting = function () {
+    roomService.getOnlineRooms();
+  };
+
+  $scope.goToRoom = function (room) {
+    $rootScope.currentRoom = room;
+    roomService.joinRoom(room.roomId).then(function (response) {
+      $state.go("room");
+    }, function (error) {
+      cordovaToast.show("Error joining room", 'long', 'bottom');
+    });
   };
 
   $scope.sendMessage = function (message) {
@@ -151,9 +231,26 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
     userService.sendMessage($scope.currentUser, $scope.chatWith, message);
   };
 
+  $scope.sendRoomMessage = function (message) {
+    $scope.roomMessage = "";
+    roomService.sendMessage($scope.currentRoom.roomId, $scope.currentUser, message);
+  };
+
+  $scope.createRoom = function () {
+    roomService.createRoom().then(function (response) {
+      
+    }, function (error) {
+      cordovaToast.show("Error creating room", 'long', 'center').then(function (success) {
+        console.log("The toast was shown");
+      }, function (error) {
+        console.log("The toast was not shown due to " + error);
+      });
+    });
+  }
   $scope.goBack = function () {
-    if ($state.current.name !== "users") {
-      $state.go($rootScope.previousState);
+    if ($state.current.name !== "choose") {
+      var previousState = $rootScope.stateArray.pop();
+      $state.go(previousState);
     }
   };
 
@@ -166,7 +263,7 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
       function (error) {
         console.log(error);
       });
-    $state.go("users");
+    $state.go("choose");
   };
 
   $scope.chatWithUser = function (user) {
@@ -181,8 +278,11 @@ angular.module('chatApp', ['ionic', 'chatApp.router', 'chatApp.services', 'chatA
   }
 
   $rootScope.$on('$stateChangeSuccess', function(ev, to, toParams, from, fromParams) {
-    $rootScope.previousState = from.name;
-    $rootScope.currentState = to.name;
+    var lastEl = $rootScope.stateArray[$rootScope.stateArray.length - 1];
+    if ((from.name !== lastEl) && (from.name !== "chat") && (from.name !== "room")) {
+      $rootScope.stateArray.push(from.name);
+    }
+    console.log($rootScope.stateArray);
   });
 
 

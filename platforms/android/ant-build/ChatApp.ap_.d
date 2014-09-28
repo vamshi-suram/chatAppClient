@@ -52,9 +52,12 @@
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/plugins/nl.x-services.plugins.toast/test \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/plugins/nl.x-services.plugins.toast/www/Toast.js \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/plugins/nl.x-services.plugins.toast/test/tests.js \
+/home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/views/choose.html \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/views/users.html \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/views/register.html \
+/home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/views/room.html \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/views/chat.html \
+/home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/views/rooms.html \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/lib/ionic \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/lib/ionic/css \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/lib/ionic/scss \
@@ -126,6 +129,7 @@
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/js/ng-cordova.js \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/js/user.js \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/js/router.js \
+/home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/js/room.js \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/js/app.js \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/assets/www/js/socket.js \
 /home/tmpaul/Desktop/Projects/chatAppClient/platforms/android/ant-build/AndroidManifest.xml \

@@ -50,7 +50,7 @@ angular.module('chatApp.networking', [])
     init: function () {
       
       var self = this;
-      this.ws = new WebSocket("ws://localhost:8080/websocket");
+      this.ws = new WebSocket("ws://192.168.4.248:8080/websocket");
 
       this.ws.onmessage = function (event) {
         console.log("Server:", event.data);
